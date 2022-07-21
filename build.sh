@@ -1,8 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 
 set -xe
 cc="/usr/bin/gcc"
-cflags="-Wall -Wextra -std=c99 -pedantic -ggdb"
+cflags="-Wall -Wextra -std=c11 -pedantic -ggdb"
 libs="`pkg-config --cflags --libs sdl2` -lm"
 src=( $(ls *.c) )
 out="rogueban"
