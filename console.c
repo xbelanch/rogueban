@@ -4,6 +4,12 @@
 #include "sdl_helpers.h"
 #include "console.h"
 
+void set_texture_color(SDL_Texture *texture, Uint32 color)
+{
+    SCC(SDL_SetTextureColorMod(texture, 0x00, 0xff, 0x00));
+    SCC(SDL_SetTextureAlphaMod(texture, 0xff));
+}
+
 void render_glyph(SDL_Renderer *renderer, Charmap *charmap, uint8_t c, float x, float y)
 {
     const SDL_Rect dst = {
@@ -21,8 +27,9 @@ Charmap *charmap_loadFromFile(const char *filepath, SDL_Renderer *renderer, Uint
     Charmap *charmap = malloc(sizeof(Charmap));
     (void) renderer;
     SDL_Surface *font_surface = SCP(get_suface_from_file(filepath));
-    SDL_SetColorKey(font_surface, SDL_TRUE, colorKey);
+    SDL_SetColorKey(font_surface, SDL_TRUE, 0xff00ff);
     charmap->spritesheet = SCP(SDL_CreateTextureFromSurface(renderer, font_surface));
+    set_texture_color(charmap->spritesheet, U32_PURPLE);
     SDL_FreeSurface(font_surface);
 
     for (size_t i = 0; i < CHARMAP_TABLE_SIZE; ++i) {
@@ -33,27 +40,3 @@ Charmap *charmap_loadFromFile(const char *filepath, SDL_Renderer *renderer, Uint
 
     return (charmap);
 }
-
-// // Console functions definitions
-// internal void consoleClear(CConsole *console)
-// {
-//     CRect r = { 0, 0, console->width, console->height };
-//     (void) r;
-//     // CFill(console->pixels, console->width, 0x000000ff);
-// }
-
-// internal CConsole *consoleNew(i32 width, i32 height, i32 rowCount, i32 colCount)
-// {
-//     CConsole *console = malloc(sizeof(CConsole));
-//     console->pixels = calloc(width * height, sizeof(u32));
-//     console->width = width;
-//     console->height = height;
-//     console->rowCount = rowCount;
-//     console->colCount = colCount;
-//     console->cellWidth = width / colCount;
-//     console->cellHeight = height / rowCount;
-//     console->font = NULL;
-//     console->cells = calloc(rowCount * colCount, sizeof(CCell));
-
-//     return console;
-// }

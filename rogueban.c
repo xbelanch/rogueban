@@ -16,11 +16,9 @@ void render_screen(SDL_Renderer *renderer, Charmap *charmap)
 {
     SCC(SDL_SetRenderDrawColor(renderer, BLACK));
     SCC(SDL_RenderClear(renderer));
-    render_glyph(renderer, charmap, 11 * 16, 0, 0);
+    render_glyph(renderer, charmap, '@', 0, 0);
     SDL_RenderPresent(renderer);
 }
-
-// @TODO: Fix chroma key glyph color (24-07-2022)
 
 int main(int argc, char *argv[])
 {
