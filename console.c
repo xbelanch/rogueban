@@ -28,6 +28,12 @@ Console *console_new(uint32_t width,
     return console;
 }
 
+void console_clear(Console *console)
+{
+    SDL_Rect src = { .x = 0, .y = 0, .w = console->width, .h = console->height };
+    console_fillColor(console->pixels, console->width, src, 0x0);
+}
+
 void console_setBitmapFont(Console *console,
                            char *filename,
                            asciiChar firstCharinAtlas,
@@ -65,10 +71,34 @@ void console_setBitmapFont(Console *console,
     console->font = font;
 }
 
+void console_fillColor(uint32_t *pixels, uint32_t pixelsPerRow, SDL_Rect dst, uint32_t color)
+{
+    uint32_t endX = dst.x + dst.w;
+    uint32_t endY = dst.y + dst.h;
 
-void console_putGlyphAt(SDL_Renderer *renderer,
-                        SDL_Texture *texture,
-                        Console *con,
+    for (uint32_t row = dst.y; row < endY; ++row) {
+        for (uint32_t col = dst.x; col < endX; ++col) {
+            pixels[row * pixelsPerRow + col] = color;
+        }
+    }
+}
+
+// @TODO: Improve this raw copy paste (29-07-2022)
+void console_CopyPaste(uint32_t *srcPixels, SDL_Rect srcRect, uint32_t srcPixelsPerRow,
+                       uint32_t *dstPixels, SDL_Rect dstRect, uint32_t dstPixelsPerRow)
+{
+    uint32_t endX = dstRect.x + dstRect.w;
+    uint32_t endY = dstRect.y + dstRect.h;
+
+    for (uint32_t srcY = srcRect.y, dstY = dstRect.y; dstY < endY; ++srcY, ++dstY) {
+        for (uint32_t srcX = srcRect.x, dstX = dstRect.x; dstX < endX; ++srcX, ++dstX) {
+            uint32_t srcColor = srcPixels[srcY * srcPixelsPerRow + srcX];
+            dstPixels[dstY * dstPixelsPerRow + dstX] = srcColor;
+        }
+    }
+}
+
+void console_putGlyphAt(Console *con,
                         asciiChar chr,
                         uint32_t cellX,
                         uint32_t cellY,
@@ -91,43 +121,5 @@ void console_putGlyphAt(SDL_Renderer *renderer,
     uint32_t yOffset = (idx / charsPerRow) * con->font->charHeight;
     SDL_Rect src = { .x = xOffset, .y = yOffset, .w = con->font->charWidth, .h = con->font->charHeight};
 
-    SCC(SDL_RenderCopy(renderer, texture, &src, &dst));
-
+    console_CopyPaste(con->font->atlas, src, con->font->atlasWidth, con->pixels, dst, con->width);
 }
-
-// void set_texture_color(SDL_Texture *texture, Uint32 color)
-// {
-//     SCC(SDL_SetTextureColorMod(texture, 0x00, 0xff, 0x00));
-//     SCC(SDL_SetTextureAlphaMod(texture, 0xff));
-// }
-
-// void render_glyph(SDL_Renderer *renderer, Charmap *charmap, uint8_t c, float x, float y)
-// {
-//     const SDL_Rect dst = {
-//         .x = (int) x,
-//         .y = (int) y,
-//         .w = 16,
-//         .h = 16
-//     };
-//     uint8_t index = c;
-//     SCC(SDL_RenderCopy(renderer, charmap->spritesheet, &charmap->glyph_table[index], &dst));
-// }
-
-// Charmap *charmap_loadFromFile(const char *filepath, SDL_Renderer *renderer, Uint32 colorKey)
-// {
-//     Charmap *charmap = malloc(sizeof(Charmap));
-//     (void) renderer;
-//     SDL_Surface *font_surface = SCP(get_suface_from_file(filepath));
-//     SDL_SetColorKey(font_surface, SDL_TRUE, 0xff00ff);
-//     charmap->spritesheet = SCP(SDL_CreateTextureFromSurface(renderer, font_surface));
-//     set_texture_color(charmap->spritesheet, U32_PURPLE);
-//     SDL_FreeSurface(font_surface);
-
-//     for (size_t i = 0; i < CHARMAP_TABLE_SIZE; ++i) {
-//         const size_t col = i % FONT_COLS;
-//         const size_t row = i / FONT_ROWS;
-//         charmap->glyph_table[i] = (SDL_Rect) { .x = col * FONT_CHAR_WIDTH, .y = row * FONT_CHAR_HEIGHT, .w = FONT_CHAR_WIDTH, .h = FONT_CHAR_HEIGHT };
-//     }
-
-//     return (charmap);
-// }

@@ -10,35 +10,18 @@
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
 #define FONT_SIZE 16
+#define ZOOM 1
 #define NUM_ROWS SCREEN_HEIGHT / FONT_SIZE
 #define NUM_COLS SCREEN_WIDTH / FONT_SIZE
 
-typedef enum {
-    BLANK = 0,
-    SAND = 66
-} TileType;
-
-typedef struct {
-    TileType tileType[NUM_COLS * NUM_ROWS];
-} Map;
-
-Map *newMap()
+void render_screen(SDL_Renderer *renderer, SDL_Texture *screen, Console *con)
 {
-    Map *map = malloc(sizeof(Map));
-    for (size_t i = 0; i < NUM_COLS; ++i)
-        map->tileType[i] = BLANK;
-    for (size_t i = NUM_COLS; i < (NUM_COLS * NUM_ROWS); ++i) {
-        map->tileType[i] = SAND;
-    }
-    return map;
-}
+    console_clear(con);
+    console_putGlyphAt(con, 'A', 32, 32, 0x0, 0x0);
 
-// @TODO: This is awful. Need to be rewrite from scratch (26-07-2022)
-void render_screen(SDL_Renderer *renderer, SDL_Texture *texture, Console *con)
-{
-    SCC(SDL_SetRenderDrawColor(renderer, BLACK));
-    SCC(SDL_RenderClear(renderer));
-    console_putGlyphAt(renderer, texture, con, 'A', 1, 1, 0x0, 0x0);
+    SDL_UpdateTexture(screen, NULL, con->pixels, SCREEN_WIDTH * (sizeof(uint32_t)));
+ 	SDL_RenderClear(renderer);
+	SDL_RenderCopy(renderer, screen, NULL, NULL);
     SDL_RenderPresent(renderer);
 }
 
@@ -56,7 +39,7 @@ int main(int argc, char *argv[])
 
     // @TODO: Glyphs distorted when screen width and height are not equal (29-07-2022)
     Console *con = console_new(SCREEN_WIDTH, SCREEN_HEIGHT, NUM_COLS, NUM_COLS);
-    console_setBitmapFont(con, "./Anikki_square_16x16.png", 0, 16, 16);
+    console_setBitmapFont(con, "./Anikki_square_16x16.png", 0, FONT_SIZE, FONT_SIZE);
     // Testing atlas data image
     SDL_Surface* surf = SDL_CreateRGBSurfaceFrom(con->font->atlas,
                                                  con->font->atlasWidth,
@@ -69,9 +52,10 @@ int main(int argc, char *argv[])
                                                  0xff000000
         );
 
-    SDL_Texture *texture = SCP(SDL_CreateTextureFromSurface(renderer, surf));
-    SCC(SDL_SetTextureColorMod(texture, 0x00, 0xff, 0x00));
-    SCC(SDL_SetTextureAlphaMod(texture, 0xff));
+    SDL_Texture *screen = SCP(SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT));
+
+    // SCC(SDL_SetTextureColorMod(texture, 0x00, 0xff, 0x00));
+    // SCC(SDL_SetTextureAlphaMod(texture, 0xff));
 
     SDL_FreeSurface(surf);
     surf = NULL;
@@ -95,7 +79,7 @@ int main(int argc, char *argv[])
             }
         }
 
-        render_screen(renderer, texture, con);
+        render_screen(renderer, screen, con);
         SDL_Delay(250);
     }
 
