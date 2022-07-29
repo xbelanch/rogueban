@@ -50,7 +50,6 @@ typedef struct {
 
 Console *console_new(uint32_t width, uint32_t height, uint32_t rowCount, uint32_t colCount);
 void console_setBitmapFont(Console *console, char *filename, asciiChar firstCharinAtlas, int charWidth, int charHeight);
-// Charmap *charmap_loadFromFile(const char *filepath, SDL_Renderer *renderer, Uint32 colorKey);
-// void render_glyph(SDL_Renderer *renderer, Charmap *charmap, uint8_t c, float x, float y);
+void console_putGlyphAt(SDL_Renderer *renderer, SDL_Texture *texture, Console *con, asciiChar chr, uint32_t cellX, uint32_t cellY, uint32_t fgColor, uint32_t bgColor);
 
 #endif

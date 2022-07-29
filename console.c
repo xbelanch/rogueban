@@ -65,11 +65,41 @@ void console_setBitmapFont(Console *console,
     console->font = font;
 }
 
-void set_texture_color(SDL_Texture *texture, Uint32 color)
+
+void console_putGlyphAt(SDL_Renderer *renderer,
+                        SDL_Texture *texture,
+                        Console *con,
+                        asciiChar chr,
+                        uint32_t cellX,
+                        uint32_t cellY,
+                        uint32_t fgColor,
+                        uint32_t bgColor)
 {
-    SCC(SDL_SetTextureColorMod(texture, 0x00, 0xff, 0x00));
-    SCC(SDL_SetTextureAlphaMod(texture, 0xff));
+// @TODO: Implement fgColor and bgColor (29-07-2022)
+    (void) fgColor;
+    (void) bgColor;
+
+    uint32_t x = cellX * con->cellWidth;
+    uint32_t y = cellY * con->cellHeight;
+    SDL_Rect dst = { .x = x, .y = y, .w = con->cellWidth, .h = con->cellHeight };
+
+    // @TODO: Fill the background with alpha blending (29-07-2022)
+
+    uint32_t idx = chr - con->font->firstCharInAtlas;
+    uint32_t charsPerRow = (con->font->atlasWidth / con->font->charWidth);
+    uint32_t xOffset = (idx % charsPerRow) * con->font->charWidth;
+    uint32_t yOffset = (idx / charsPerRow) * con->font->charHeight;
+    SDL_Rect src = { .x = xOffset, .y = yOffset, .w = con->font->charWidth, .h = con->font->charHeight};
+
+    SCC(SDL_RenderCopy(renderer, texture, &src, &dst));
+
 }
+
+// void set_texture_color(SDL_Texture *texture, Uint32 color)
+// {
+//     SCC(SDL_SetTextureColorMod(texture, 0x00, 0xff, 0x00));
+//     SCC(SDL_SetTextureAlphaMod(texture, 0xff));
+// }
 
 // void render_glyph(SDL_Renderer *renderer, Charmap *charmap, uint8_t c, float x, float y)
 // {
