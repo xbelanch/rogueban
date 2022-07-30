@@ -185,8 +185,32 @@ void console_copyBlend(uint32_t *dstPixels, SDL_Rect dstRect, uint32_t dstPixels
     }
 }
 
+void console_setFgColor(uint32_t *srcPixel, SDL_Rect src, size_t maxPixelPerRow, uint32_t alphaKeyColor, uint32_t newColor)
+{
+    size_t endX = src.x + src.w;
+    size_t endY = src.y + src.h;
+    for (size_t y = src.y; y < endY; ++y) {
+        for (size_t x = src.x; x < endX; ++x) {
+            uint32_t pixelColor = srcPixel[(y * maxPixelPerRow) + x];
+            uint8_t alpha = (pixelColor >> 24);
+            uint8_t red = ((pixelColor >> 16) & 0xff);
+            uint8_t green = ((pixelColor >> 8) & 0xff);
+            uint8_t blue = (pixelColor & 0xff);
+            pixelColor = (red << 24) | (green << 16) | (blue << 8) | (alpha);
+
+            if (pixelColor != alphaKeyColor) {
+                uint32_t *color = &srcPixel[(y * maxPixelPerRow) + x];
+                *color = 0x33ffff00;
+            }
+        }
+    }
+}
+
 void console_copyColor(uint32_t *srcPixels, uint32_t *dstPixels, uint32_t srcPixelsPerRow, uint32_t dstPixelsPerRow, SDL_Rect src, SDL_Rect dst, uint32_t alphaKeyColor, uint32_t newColor)
 {
+
+    // random color value
+    uint32_t randColor = random()%255 << 24 | random()%255 << 16 | random()%255 << 8 | 0xff;
     size_t endX = dst.x + dst.w;
     size_t endY = dst.y + dst.h;
     for (size_t srcY = src.y, dstY = dst.y; dstY < endY; ++srcY, ++dstY) {
@@ -204,9 +228,13 @@ void console_copyColor(uint32_t *srcPixels, uint32_t *dstPixels, uint32_t srcPix
             if (srcColor == alphaKeyColor) {
                 // No need to blend so we pick color below
                 continue;
-            } else {
-                // @TODO: Implement blending color (30-07-2022)
+            } else if ((srcColor & 0xff) == 0xff)
+                // Opaque color, no blending
                 *pixelColor = newColor;
+            else {
+                // @TODO: Implement blending color (30-07-2022)
+                // *pixelColor = newColor;
+                *pixelColor = randColor;
             }
         }
     }
@@ -233,6 +261,9 @@ void console_putGlyphAt(Console *con,
     uint32_t xOffset = (idx % charsPerRow) * con->font->charWidth;
     uint32_t yOffset = (idx / charsPerRow) * con->font->charHeight;
     SDL_Rect src = { .x = xOffset, .y = yOffset, .w = con->font->charWidth, .h = con->font->charHeight};
+
+    // Set foreground color from font atlas
+    console_setFgColor(con->font->atlas, src, con->font->atlasWidth, U32_PURPLE, 0xff0000ff);
 
     // Copy pixel color from font atlas to console pixel buffer
     console_copyColor(con->font->atlas, con->pixels, con->font->atlasWidth, con->width, src, dst, U32_PURPLE, U32_GREEN);
