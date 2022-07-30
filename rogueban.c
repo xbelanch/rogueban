@@ -17,7 +17,10 @@
 void render_screen(SDL_Renderer *renderer, SDL_Texture *screen, Console *con)
 {
     console_clear(con);
-    console_putGlyphAt(con, 'A', 32, 32, 0x0, 0x0);
+    size_t charSize = con->font->charWidth * con->font->charHeight;
+    for (size_t i = 0; i < charSize; ++i) {
+        console_putGlyphAt(con, i, i % con->font->charWidth * 2, (i / con->font->charWidth), 0xff0000ff, 0xffffffff);
+    }
 
     SDL_UpdateTexture(screen, NULL, con->pixels, SCREEN_WIDTH * (sizeof(uint32_t)));
  	SDL_RenderClear(renderer);
@@ -38,7 +41,7 @@ int main(int argc, char *argv[])
     SDL_RenderSetLogicalSize(renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     // @TODO: Glyphs distorted when screen width and height are not equal (29-07-2022)
-    Console *con = console_new(SCREEN_WIDTH, SCREEN_HEIGHT, NUM_COLS, NUM_COLS);
+    Console *con = console_new(SCREEN_WIDTH, SCREEN_HEIGHT, NUM_COLS, NUM_ROWS);
     console_setBitmapFont(con, "./Anikki_square_16x16.png", 0, FONT_SIZE, FONT_SIZE);
     // Testing atlas data image
     SDL_Surface* surf = SDL_CreateRGBSurfaceFrom(con->font->atlas,
@@ -53,10 +56,6 @@ int main(int argc, char *argv[])
         );
 
     SDL_Texture *screen = SCP(SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT));
-
-    // SCC(SDL_SetTextureColorMod(texture, 0x00, 0xff, 0x00));
-    // SCC(SDL_SetTextureAlphaMod(texture, 0xff));
-
     SDL_FreeSurface(surf);
     surf = NULL;
 
