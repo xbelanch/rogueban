@@ -1,5 +1,4 @@
 #include <SDL2/SDL.h>
-#include "common.h"
 
 int SCC(int ret)
 {

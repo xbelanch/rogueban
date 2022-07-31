@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <SDL2/SDL.h>
-#include "common.h"
+#include "colors.h"
 #include "console.h"
 #include "sdl_helpers.h"
 
@@ -17,10 +17,16 @@
 void render_screen(SDL_Renderer *renderer, SDL_Texture *screen, Console *con)
 {
     console_clear(con);
-    size_t charSize = con->font->charWidth * con->font->charHeight;
-    for (size_t i = 0; i < charSize; ++i) {
-        console_putGlyphAt(con, i, i % con->font->charWidth * 2, (i / con->font->charWidth), 0xff0000ff, 0xffffffff);
-    }
+    // size_t charSize = con->font->charWidth * con->font->charHeight;
+    // for (size_t i = 0; i < charSize; ++i) {
+    //     console_putGlyphAt(con, i, i % con->font->charWidth * 2, (i / con->font->charWidth), 0xff0000ff, 0xffffffff);
+    // }
+    console_putGlyphAt(con, 'A', 1, 2, 0xffffff00, 0x000000ff);
+    console_putGlyphAt(con, 'A', 2, 2, 0xffffff11, 0x000000aa);
+    console_putGlyphAt(con, 'A', 3, 2, 0xffffff55, 0x00000088);
+    console_putGlyphAt(con, 'A', 4, 2, 0xffffff88, 0x00000055);
+    console_putGlyphAt(con, 'A', 5, 2, 0xffffffaa, 0x00000011);
+    console_putGlyphAt(con, 'A', 5, 2, 0xffffffff, 0x00000000);
 
     SDL_UpdateTexture(screen, NULL, con->pixels, SCREEN_WIDTH * (sizeof(uint32_t)));
  	SDL_RenderClear(renderer);
