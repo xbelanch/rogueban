@@ -4,6 +4,5 @@
 
 int SCC(int ret);
 void *SCP(void *ptr);
-SDL_Surface *get_suface_from_file(const char *file_path);
 
 #endif

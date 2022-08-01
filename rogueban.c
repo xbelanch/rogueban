@@ -14,29 +14,24 @@
 #define ZOOM 1
 #define NUM_ROWS SCREEN_HEIGHT / FONT_SIZE
 #define NUM_COLS SCREEN_WIDTH / FONT_SIZE
+#define FPS 60
+
+typedef struct {
+    int x, y;
+} Hero;
+
+Hero hero;
 
 void render_screen(SDL_Renderer *renderer, SDL_Texture *screen, Console *con)
 {
     console_clear(con);
-    // size_t charSize = con->font->charWidth * con->font->charHeight;
-    // for (size_t i = 0; i < charSize; ++i) {
-    //     console_putGlyphAt(con, i, i % con->font->charWidth * 2, (i / con->font->charWidth), 0xff0000ff, 0xffffffff);
-    // }
-    // console_dumpTileset(con);
-    console_putGlyphAt(con, '@', 0, 0, 0x0, 0xff);
-    console_putGlyphAt(con, '@', 0, 1, 0xffff00ff, 0x0);
-    for (size_t i = 0, j = 0; j < 0x10; ++j) {
-        console_putGlyphAt(con, '@', j, 2, 0xff000000 | i % 0xff, 0x0);
-        console_putGlyphAt(con, '@', j, 3, 0x00ff0000 | i % 0xff, 0x0);
-        console_putGlyphAt(con, '@', j, 4, 0x0000ff00 | i % 0xff, 0x0);
-        i = 0x10 * j;
-    }
+    console_putGlyphAt(con, '@', hero.x, hero.y, 0x00ff00ff, 0x0);
+
     SDL_UpdateTexture(screen, NULL, con->pixels, SCREEN_WIDTH * (sizeof(uint32_t)));
  	SDL_RenderClear(renderer);
 	SDL_RenderCopy(renderer, screen, NULL, NULL);
     SDL_RenderPresent(renderer);
 }
-
 int main(int argc, char *argv[])
 {
     (void) argc;
@@ -53,9 +48,13 @@ int main(int argc, char *argv[])
     console_setBitmapFont(con, TILESET, 0, FONT_SIZE, FONT_SIZE);
     SDL_Texture *screen = SCP(SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT));
 
+    hero = (Hero) { .x = NUM_COLS / 2, .y = NUM_ROWS / 2 };
+
+
     // Game loop
     bool quit = false;
     while (!quit) {
+        const Uint32 start = SDL_GetTicks();
         SDL_Event event = {0};
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
@@ -67,13 +66,41 @@ int main(int argc, char *argv[])
                     quit = true;
                     break;
                 }
+                case SDLK_w: {
+                    if (hero.y > 0)
+                        hero.y--;
+                    break;
+                }
+                case SDLK_s: {
+                    if (hero.y < NUM_ROWS - 1)
+                        hero.y++;
+                    break;
+                }
+                case SDLK_a: {
+                    if (hero.x > 0)
+                        hero.x--;
+                    break;
+                }
+                case SDLK_d: {
+                    if (hero.x < NUM_COLS - 1)
+                        hero.x++;
+                    break;
+                }
                 default: break;
                 }
             }
         }
 
         render_screen(renderer, screen, con);
-        SDL_Delay(250);
+
+
+
+        const Uint32 duration = SDL_GetTicks() - start;
+        const Uint32 delta_time_ms = 1000 / FPS;
+        if (duration < delta_time_ms) {
+            SDL_Delay(delta_time_ms - duration);
+        }
+
     }
 
     SDL_DestroyRenderer(renderer);
