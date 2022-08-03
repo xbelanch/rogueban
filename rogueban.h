@@ -43,7 +43,7 @@ typedef struct {
 // Components
 typedef struct {
     uint32_t id;
-    uint8_t x, y;
+    int x, y;
 } Position;
 
 typedef struct {
@@ -63,6 +63,7 @@ typedef struct {
 GameObject gameObjects[MAX_GAME_OBJECTS_SIZE];
 Position positionGameObjects[MAX_GAME_OBJECTS_SIZE];
 Outfit outfitGameObjects[MAX_GAME_OBJECTS_SIZE];
+Physical physicalGameObjects[MAX_GAME_OBJECTS_SIZE];
 
 GameObject *newGameObject()
 {
@@ -103,6 +104,15 @@ void addComponentToGameObject(GameObject *obj, GameComponent comp, void *compDat
         obj->components[comp] = &outfitGameObjects[obj->id];
         break;
     }
+    case PHYSICAL: {
+        Physical *physics = &physicalGameObjects[obj->id];
+        physics->id = obj->id;
+        Physical *data = (Physical *)compData;
+        physics->blocksMovement = data->blocksMovement;
+        physics->blocksSight = data->blocksSight;
+        obj->components[comp] = &physicalGameObjects[obj->id];
+        break;
+    }
     default:
         assert(false && "Unknow component");
         exit(1);
@@ -118,6 +128,7 @@ void destroyGameObject(GameObject *obj)
 {
     positionGameObjects[obj->id].id = 0;
     outfitGameObjects[obj->id].id = 0;
+    physicalGameObjects[obj->id].id = 0;
     // Set index object to zero
     obj->id = 0;
     // Clean up all components used by this object

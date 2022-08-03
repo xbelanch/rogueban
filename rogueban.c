@@ -11,6 +11,27 @@
 GameObject *hero;
 GameObject *wall;
 
+bool canMove(Position *pos)
+{
+    bool allowMove = true;
+
+    // Check first screen boundaries
+    if ((pos->y >= 0 && pos->y < NUM_ROWS) && (pos->x >= 0 && pos->x < NUM_COLS)) {
+        // Check physical objects
+        for (size_t i = 1; i < MAX_GAME_OBJECTS_SIZE; ++i) {
+            Position p = positionGameObjects[i];
+            // Check if we encounter some block
+            if (p.id > 0 && (p.x == pos->x && p.y == pos->y)) {
+                if (physicalGameObjects[i].blocksMovement == true) {
+                    allowMove = false;
+                    break;
+                }
+            }
+        }
+    }
+    return allowMove;
+}
+
 void render_screen(SDL_Renderer *renderer, SDL_Texture *screen, Console *con)
 {
     console_clear(con);
@@ -49,15 +70,20 @@ int main(int argc, char *argv[])
     // Add entities to the game
     hero = newGameObject();
     Position heroPosition = { .id = hero->id, .x = (NUM_COLS / 2) - 1, .y = (NUM_ROWS / 2) - 1};
-    Outfit heroOutfit = { .id = hero->id, .glyph = '@', .fgColor = 0x00ff00ff, .bgColor = 0x0 };
     addComponentToGameObject(hero, POSITION, &heroPosition);
+    Outfit heroOutfit = { .id = hero->id, .glyph = '@', .fgColor = 0x00ff00ff, .bgColor = 0x0 };
     addComponentToGameObject(hero, OUTFIT, &heroOutfit);
+    Physical heroPhysical = { .id = hero->id, .blocksMovement = true, .blocksSight = true };
+    addComponentToGameObject(hero, PHYSICAL, &heroPhysical);
 
     wall = newGameObject();
     Position wallPosition = { .id = wall->id, .x = rand() % NUM_COLS, .y = rand() % NUM_ROWS };
-    Outfit wallOutfit = { .id = wall->id, .glyph = '#', .fgColor = 0xff0000ff, .bgColor = 0xffffffff };
     addComponentToGameObject(wall, POSITION, &wallPosition);
+    Outfit wallOutfit = { .id = wall->id, .glyph = '#', .fgColor = 0xff0000ff, .bgColor = 0xffffffff };
     addComponentToGameObject(wall, OUTFIT, &wallOutfit);
+    Physical wallPhysical = { .id = wall->id, .blocksMovement = true, .blocksSight = true };
+    addComponentToGameObject(wall, PHYSICAL, &wallPhysical);
+
 
     // Game loop
     bool quit = false;
@@ -78,23 +104,27 @@ int main(int argc, char *argv[])
                     break;
                 }
                 case SDLK_w: {
-                    if (heroPos->y > 0)
-                        heroPos->y--;
+                    Position newPosition = { .id = heroPos->id, .x = heroPos->x, .y = heroPos->y - 1 };
+                    if (canMove(&newPosition))
+                        addComponentToGameObject(hero, POSITION, &newPosition);
                     break;
                 }
                 case SDLK_s: {
-                    if (heroPos->y < NUM_ROWS - 1)
-                        heroPos->y++;
+                    Position newPosition = { .id = heroPos->id, .x = heroPos->x, .y = heroPos->y + 1};
+                    if (canMove(&newPosition))
+                        addComponentToGameObject(hero, POSITION, &newPosition);
                     break;
                 }
                 case SDLK_a: {
-                    if (heroPos->x > 0)
-                        heroPos->x--;
+                    Position newPosition = { .id = heroPos->id, .x = heroPos->x - 1, .y = heroPos->y };
+                    if (canMove(&newPosition))
+                        addComponentToGameObject(hero, POSITION, &newPosition);
                     break;
                 }
                 case SDLK_d: {
-                    if (heroPos->x < NUM_COLS - 1)
-                        heroPos->x++;
+                    Position newPosition = { .id = heroPos->id, .x = heroPos->x + 1, .y = heroPos->y };
+                    if (canMove(&newPosition))
+                        addComponentToGameObject(hero, POSITION, &newPosition);
                     break;
                 }
                 default: break;
