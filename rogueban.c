@@ -9,19 +9,20 @@
 #include "rogueban.h"
 
 GameObject *hero;
-GameObject *rock;
+GameObject *wall;
 
 void render_screen(SDL_Renderer *renderer, SDL_Texture *screen, Console *con)
 {
     console_clear(con);
 
-    Position *rockPos = (Position *)getGameObjectComponent(rock, POSITION);
-    Outfit *rockOutfit = (Outfit *)getGameObjectComponent(rock, OUTFIT);
-    console_putGlyphAt(con, rockOutfit->glyph, rockPos->x, rockPos->y, rockOutfit->fgColor, rockOutfit->bgColor);
-
-    Position *heroPos = (Position *)getGameObjectComponent(hero, POSITION);
-    Outfit *heroOutfit = (Outfit *)getGameObjectComponent(hero, OUTFIT);
-    console_putGlyphAt(con, heroOutfit->glyph, heroPos->x, heroPos->y, heroOutfit->fgColor, heroOutfit->bgColor);
+    for (size_t i = 1; i < MAX_GAME_OBJECTS_SIZE; ++i) {
+        if (outfitGameObjects[i].id > 0) {
+            GameObject *obj = &gameObjects[i];
+            Position *pos = (Position *)getGameObjectComponent(obj, POSITION);
+            Outfit *vis = (Outfit *)getGameObjectComponent(obj, OUTFIT);
+            console_putGlyphAt(con, vis->glyph, pos->x, pos->y, vis->fgColor, vis->bgColor);
+        }
+    }
 
     SDL_UpdateTexture(screen, NULL, con->pixels, SCREEN_WIDTH * (sizeof(uint32_t)));
  	SDL_RenderClear(renderer);
@@ -45,19 +46,18 @@ int main(int argc, char *argv[])
     console_setBitmapFont(con, TILESET, 0, FONT_SIZE, FONT_SIZE);
     SDL_Texture *screen = SCP(SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT));
 
-    // Add our hero to the game
+    // Add entities to the game
     hero = newGameObject();
     Position heroPosition = { .id = hero->id, .x = (NUM_COLS / 2) - 1, .y = (NUM_ROWS / 2) - 1};
     Outfit heroOutfit = { .id = hero->id, .glyph = '@', .fgColor = 0x00ff00ff, .bgColor = 0x0 };
     addComponentToGameObject(hero, POSITION, &heroPosition);
     addComponentToGameObject(hero, OUTFIT, &heroOutfit);
 
-    // Add a simple rock
-    rock = newGameObject();
-    Position rockPosition = { .id = rock->id, .x = rand() % NUM_COLS, .y = rand() % NUM_ROWS };
-    Outfit rockOutfit = { .id = rock->id, .glyph = 'A', .fgColor = 0xff0000ff, .bgColor = 0xffffffff };
-    addComponentToGameObject(rock, POSITION, &rockPosition);
-    addComponentToGameObject(rock, OUTFIT, &rockOutfit);
+    wall = newGameObject();
+    Position wallPosition = { .id = wall->id, .x = rand() % NUM_COLS, .y = rand() % NUM_ROWS };
+    Outfit wallOutfit = { .id = wall->id, .glyph = '#', .fgColor = 0xff0000ff, .bgColor = 0xffffffff };
+    addComponentToGameObject(wall, POSITION, &wallPosition);
+    addComponentToGameObject(wall, OUTFIT, &wallOutfit);
 
     // Game loop
     bool quit = false;

@@ -59,6 +59,7 @@ typedef struct {
     bool blocksSight;
 } Physical;
 
+// Initialize all game objects and components
 GameObject gameObjects[MAX_GAME_OBJECTS_SIZE];
 Position positionGameObjects[MAX_GAME_OBJECTS_SIZE];
 Outfit outfitGameObjects[MAX_GAME_OBJECTS_SIZE];
@@ -120,7 +121,6 @@ void destroyGameObject(GameObject *obj)
     // Set index object to zero
     obj->id = 0;
     // Clean up all components used by this object
-
 }
 
 
