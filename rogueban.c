@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <time.h>
 #include <SDL2/SDL.h>
 #include "./colors.h"
 #include "./console.h"
@@ -12,17 +13,17 @@
 GameObject *hero;
 GameObject *wall;
 
-bool canMove(Position *pos)
+bool can_move(Position *pos)
 {
     bool allowMove = true;
 
     // Check first screen boundaries
     if ((pos->y >= 0 && pos->y < NUM_ROWS) && (pos->x >= 0 && pos->x < NUM_COLS)) {
         // Check physical objects
-        for (size_t i = 1; i < MAX_GAME_OBJECTS_SIZE; ++i) {
+        for (size_t i = 0; i < MAX_GAME_OBJECTS_SIZE; ++i) {
             Position p = positionGameObjects[i];
             // Check if we encounter some block
-            if (p.id > 0 && (p.x == pos->x && p.y == pos->y)) {
+            if (p.id != UNUSED && (p.x == pos->x && p.y == pos->y)) {
                 if (physicalGameObjects[i].blocksMovement == true) {
                     allowMove = false;
                     break;
@@ -37,11 +38,11 @@ void render_screen(SDL_Renderer *renderer, SDL_Texture *screen, Console *con)
 {
     console_clear(con);
 
-    for (size_t i = 1; i < MAX_GAME_OBJECTS_SIZE; ++i) {
-        if (outfitGameObjects[i].id > 0) {
+    for (size_t i = 0; i < MAX_GAME_OBJECTS_SIZE; ++i) {
+        if (outfitGameObjects[i].id != UNUSED) {
             GameObject *obj = &gameObjects[i];
-            Position *pos = (Position *)getGameObjectComponent(obj, POSITION);
-            Outfit *vis = (Outfit *)getGameObjectComponent(obj, OUTFIT);
+            Position *pos = (Position *)game_object_get_component(obj, POSITION);
+            Outfit *vis = (Outfit *)game_object_get_component(obj, OUTFIT);
             console_putGlyphAt(con, vis->glyph, pos->x, pos->y, vis->fgColor, vis->bgColor);
         }
     }
@@ -57,6 +58,8 @@ int main(int argc, char *argv[])
     (void) argc;
     (void) argv[0];
 
+    srand(time(NULL)); // randomize seed
+
     // SDL2 init stuff
     SCC(SDL_Init(SDL_INIT_VIDEO));
     SDL_Window *window = SCP(SDL_CreateWindow("Rogueban", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0));
@@ -68,22 +71,25 @@ int main(int argc, char *argv[])
     console_setBitmapFont(con, TILESET, 0, FONT_SIZE, FONT_SIZE);
     SDL_Texture *screen = SCP(SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT));
 
-    // Add entities to the game
-    hero = newGameObject();
-    Position heroPosition = { .id = hero->id, .x = (NUM_COLS / 2) - 1, .y = (NUM_ROWS / 2) - 1};
-    addComponentToGameObject(hero, POSITION, &heroPosition);
-    Outfit heroOutfit = { .id = hero->id, .glyph = '@', .fgColor = 0x00ff00ff, .bgColor = 0x0 };
-    addComponentToGameObject(hero, OUTFIT, &heroOutfit);
-    Physical heroPhysical = { .id = hero->id, .blocksMovement = true, .blocksSight = true };
-    addComponentToGameObject(hero, PHYSICAL, &heroPhysical);
+    // Initialize world state
+    world_init_state();
 
-    wall = newGameObject();
+    // Add entities to the game
+    hero = game_object_new();
+    Position heroPosition = { .id = hero->id, .x = (NUM_COLS / 2) - 1, .y = (NUM_ROWS / 2) - 1};
+    game_object_add_component(hero, POSITION, &heroPosition);
+    Outfit heroOutfit = { .id = hero->id, .glyph = '@', .fgColor = 0x00ff00ff, .bgColor = 0x0 };
+    game_object_add_component(hero, OUTFIT, &heroOutfit);
+    Physical heroPhysical = { .id = hero->id, .blocksMovement = true, .blocksSight = true };
+    game_object_add_component(hero, PHYSICAL, &heroPhysical);
+
+    wall = game_object_new();
     Position wallPosition = { .id = wall->id, .x = rand() % NUM_COLS, .y = rand() % NUM_ROWS };
-    addComponentToGameObject(wall, POSITION, &wallPosition);
+    game_object_add_component(wall, POSITION, &wallPosition);
     Outfit wallOutfit = { .id = wall->id, .glyph = '#', .fgColor = 0xff0000ff, .bgColor = 0xffffffff };
-    addComponentToGameObject(wall, OUTFIT, &wallOutfit);
+    game_object_add_component(wall, OUTFIT, &wallOutfit);
     Physical wallPhysical = { .id = wall->id, .blocksMovement = true, .blocksSight = true };
-    addComponentToGameObject(wall, PHYSICAL, &wallPhysical);
+    game_object_add_component(wall, PHYSICAL, &wallPhysical);
 
 
     // Game loop
@@ -97,7 +103,7 @@ int main(int argc, char *argv[])
                 break;
             } else if (event.type == SDL_KEYDOWN) {
 
-                Position *heroPos = (Position *)getGameObjectComponent(hero, POSITION);
+                Position *heroPos = (Position *)game_object_get_component(hero, POSITION);
 
                 switch (event.key.keysym.sym) {
                 case SDLK_ESCAPE: {
@@ -106,26 +112,26 @@ int main(int argc, char *argv[])
                 }
                 case SDLK_w: {
                     Position newPosition = { .id = heroPos->id, .x = heroPos->x, .y = heroPos->y - 1 };
-                    if (canMove(&newPosition))
-                        addComponentToGameObject(hero, POSITION, &newPosition);
+                    if (can_move(&newPosition))
+                        game_object_add_component(hero, POSITION, &newPosition);
                     break;
                 }
                 case SDLK_s: {
                     Position newPosition = { .id = heroPos->id, .x = heroPos->x, .y = heroPos->y + 1};
-                    if (canMove(&newPosition))
-                        addComponentToGameObject(hero, POSITION, &newPosition);
+                    if (can_move(&newPosition))
+                        game_object_add_component(hero, POSITION, &newPosition);
                     break;
                 }
                 case SDLK_a: {
                     Position newPosition = { .id = heroPos->id, .x = heroPos->x - 1, .y = heroPos->y };
-                    if (canMove(&newPosition))
-                        addComponentToGameObject(hero, POSITION, &newPosition);
+                    if (can_move(&newPosition))
+                        game_object_add_component(hero, POSITION, &newPosition);
                     break;
                 }
                 case SDLK_d: {
                     Position newPosition = { .id = heroPos->id, .x = heroPos->x + 1, .y = heroPos->y };
-                    if (canMove(&newPosition))
-                        addComponentToGameObject(hero, POSITION, &newPosition);
+                    if (can_move(&newPosition))
+                        game_object_add_component(hero, POSITION, &newPosition);
                     break;
                 }
                 default: break;

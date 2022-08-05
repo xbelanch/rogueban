@@ -5,25 +5,40 @@ Position positionGameObjects[MAX_GAME_OBJECTS_SIZE];
 Outfit outfitGameObjects[MAX_GAME_OBJECTS_SIZE];
 Physical physicalGameObjects[MAX_GAME_OBJECTS_SIZE];
 
-GameObject *newGameObject()
+void world_init_state()
+{
+    for (size_t i = 0; i < MAX_GAME_OBJECTS_SIZE; ++i) {
+        gameObjects[i].id = UNUSED;
+        positionGameObjects[i].id = UNUSED;
+        outfitGameObjects[i].id = UNUSED;
+        physicalGameObjects[i].id = UNUSED;
+    }
+}
+
+GameObject *game_object_new()
 {
     GameObject *obj = NULL;
     // First (amb naive) way for storing gameObjects
     // @TODO: Try to rewrite this because trick of i = 1 when id is equal to 0 (02-08-2022)
-    for (size_t i = 1; i < MAX_GAME_OBJECTS_SIZE; ++i) {
-        if (gameObjects[i].id == 0) {
+    for (size_t i = 0; i < MAX_GAME_OBJECTS_SIZE; ++i) {
+        if (gameObjects[i].id == UNUSED) {
             obj = &gameObjects[i];
             obj->id = i;
             break;
         }
     }
     assert(obj != NULL);
+
+    for (size_t i = 0; i < MAX_SIZE_COMPONENTS; ++i) {
+        obj->components[i] = NULL;
+    }
+
     return obj;
 }
 
-void addComponentToGameObject(GameObject *obj, GameComponent comp, void *compData)
+void game_object_add_component(GameObject *obj, GameComponent comp, void *compData)
 {
-    assert(obj->id != 0);
+    assert(obj->id != UNUSED);
     switch(comp) {
     case POSITION: {
         Position *position = &positionGameObjects[obj->id];
@@ -59,17 +74,17 @@ void addComponentToGameObject(GameObject *obj, GameComponent comp, void *compDat
     }
 }
 
-void *getGameObjectComponent(GameObject *obj, GameComponent comp)
+void *game_object_get_component(GameObject *obj, GameComponent comp)
 {
     return obj->components[comp];
 }
 
-void destroyGameObject(GameObject *obj)
+void game_object_destroy(GameObject *obj)
 {
-    positionGameObjects[obj->id].id = 0;
-    outfitGameObjects[obj->id].id = 0;
-    physicalGameObjects[obj->id].id = 0;
-    // Set index object to zero
-    obj->id = 0;
+    positionGameObjects[obj->id].id = UNUSED;
+    outfitGameObjects[obj->id].id = UNUSED;
+    physicalGameObjects[obj->id].id = UNUSED;
+    // Set index object to unused
+    obj->id = UNUSED;
     // Clean up all components used by this object
 }
