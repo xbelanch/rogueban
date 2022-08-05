@@ -3,10 +3,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <SDL2/SDL.h>
-#include "colors.h"
-#include "console.h"
-#include "sdl_helpers.h"
-#include "rogueban.h"
+#include "./colors.h"
+#include "./console.h"
+#include "./sdl_helpers.h"
+#include "./rogueban.h"
+#include "./ecs.h"
 
 GameObject *hero;
 GameObject *wall;
