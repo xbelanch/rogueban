@@ -7,6 +7,8 @@
 
 #define MAP_WIDTH SCREEN_WIDTH / FONT_SIZE
 #define MAP_HEIGHT SCREEN_HEIGHT / FONT_SIZE
+#define MAX_ROOM_WIDTH 8
+#define MAX_ROOM_HEIGHT 8
 
 extern bool mapCells[MAP_HEIGHT][MAP_WIDTH];
 

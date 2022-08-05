@@ -85,11 +85,23 @@ int main(int argc, char *argv[])
         }
     }
 
-    // Add entities to the game
+    // Add our hero
     hero = game_object_new();
-    Position heroPosition = { .id = hero->id, .x = (NUM_COLS / 2) - 1, .y = (NUM_ROWS / 2) - 1};
+
+    // Find a free starting position cell for our player
+    Position heroPosition = { 0 };
+    for (size_t row = 0; row < MAP_HEIGHT; ++row) {
+        for (size_t col = 0; col < MAP_WIDTH; ++col) {
+            if (!mapCells[row][col]) {
+                heroPosition = (Position){ .id = hero->id, .x = col, .y = row };
+                break;
+            }
+        }
+    }
+
+    // Add components to our hero
     game_object_add_component(hero, POSITION, &heroPosition);
-    Outfit heroOutfit = { .id = hero->id, .glyph = '@', .fgColor = 0x00ff00ff, .bgColor = 0x0 };
+    Outfit heroOutfit = { .id = hero->id, .glyph = '@', .fgColor = 0xffffffff, .bgColor = 0x0 };
     game_object_add_component(hero, OUTFIT, &heroOutfit);
     Physical heroPhysical = { .id = hero->id, .blocksMovement = true, .blocksSight = true };
     game_object_add_component(hero, PHYSICAL, &heroPhysical);

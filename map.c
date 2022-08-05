@@ -1,8 +1,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <SDL2/SDL.h>
-#include "./map.h"
 #include "./ecs.h"
+#include "./map.h"
 
 bool mapCells[MAP_HEIGHT][MAP_WIDTH];
 
@@ -43,15 +43,14 @@ void map_generate()
 
     while (!roomsDone) {
         // Generate random width/height rooms
-        uint8_t w = rand() % 17 + 3;
-        uint8_t h = rand() % 17 + 3;
-
-        uint8_t x = (rand() % MAP_WIDTH) - w - 1;
-        uint8_t y = (rand() % MAP_HEIGHT) - h - 1;
-
-        // really?
-        if (x >= MAP_WIDTH || y >= MAP_HEIGHT)
-            continue;
+        uint8_t w = rand() % MAX_ROOM_WIDTH + 3;
+        uint8_t h = rand() % MAX_ROOM_HEIGHT + 3;
+        assert( w < MAP_WIDTH);
+        assert( h < MAP_HEIGHT);
+        uint8_t x = rand() % (MAP_WIDTH - w - 1);
+        uint8_t y = rand() % (MAP_HEIGHT - h - 1);
+        if (x == 0) x = 1;
+        if (y == 0) y = 1;
 
         bool success = map_carve_room(x, y, w, h);
         if (success) {
@@ -60,12 +59,16 @@ void map_generate()
         }
 
         // Exit condition
-        if (((float)cellsUsed / (float)(MAP_WIDTH * MAP_HEIGHT)) > 0.65) {
+        if (((float)cellsUsed / (float)(MAP_WIDTH * MAP_HEIGHT)) > 0.35) {
             roomsDone = true;
         }
     }
 
     // TODO: Join all rooms with corridors
+    // for (size_t i = 1 ; i < rooms_count; ++i) {
+    //     SDL_Rect from = rooms[i - 1];
+    //     SDL_Rect to = rooms[i];
+    // }
 }
 
 void map_add_wall(size_t x, size_t y)
@@ -73,7 +76,7 @@ void map_add_wall(size_t x, size_t y)
     GameObject *wall = game_object_new();
     Position wallPosition = { .id = wall->id, .x = x, .y = y };
     game_object_add_component(wall, POSITION, &wallPosition);
-    Outfit wallOutfit = { .id = wall->id, .glyph = '#', .fgColor = 0xff0000ff, .bgColor = 0xffffffff };
+    Outfit wallOutfit = { .id = wall->id, .glyph = '#', .fgColor = 0x675644ff, .bgColor = 0xff };
     game_object_add_component(wall, OUTFIT, &wallOutfit);
     Physical wallPhysical = { .id = wall->id, .blocksMovement = true, .blocksSight = true };
     game_object_add_component(wall, PHYSICAL, &wallPhysical);
