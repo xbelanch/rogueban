@@ -35,8 +35,8 @@ typedef struct {
 
 Console *console_new(uint32_t width, uint32_t height, uint32_t rowCount, uint32_t colCount);
 void console_clear(Console *console);
-void console_setBitmapFont(Console *console, char *filename, asciiChar firstCharinAtlas, int charWidth, int charHeight);
-void console_dumpTileset(Console *con);
-void console_putGlyphAt(Console *con, asciiChar chr, uint32_t cellX, uint32_t cellY, uint32_t fgColor, uint32_t bgColor);
+void console_set_bitmap_font(Console *console, char *filename, asciiChar firstCharinAtlas, int charWidth, int charHeight);
+void console_dump_tileset(Console *con);
+void console_put_glyph_at(Console *con, asciiChar chr, uint32_t cellX, uint32_t cellY, uint32_t fgColor, uint32_t bgColor);
 
 #endif

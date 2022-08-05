@@ -9,29 +9,30 @@
 #include "./sdl_helpers.h"
 #include "./rogueban.h"
 #include "./ecs.h"
+#include "./map.h"
 
 GameObject *hero;
 GameObject *wall;
 
-bool can_move(Position *pos)
+bool can_move(Position *new)
 {
-    bool allowMove = true;
-
     // Check first screen boundaries
-    if ((pos->y >= 0 && pos->y < NUM_ROWS) && (pos->x >= 0 && pos->x < NUM_COLS)) {
+    if ((new->y >= 0 && new->y < MAP_HEIGHT) && (new->x >= 0 && new->x < MAP_WIDTH)) {
         // Check physical objects
         for (size_t i = 0; i < MAX_GAME_OBJECTS_SIZE; ++i) {
             Position p = positionGameObjects[i];
             // Check if we encounter some block
-            if (p.id != UNUSED && (p.x == pos->x && p.y == pos->y)) {
+            if (p.id != UNUSED && (p.x == new->x && p.y == new->y)) {
                 if (physicalGameObjects[i].blocksMovement == true) {
-                    allowMove = false;
-                    break;
+                    return false;
                 }
             }
         }
+        return true;
+    } else {
+        return false;
     }
-    return allowMove;
+
 }
 
 void render_screen(SDL_Renderer *renderer, SDL_Texture *screen, Console *con)
@@ -43,7 +44,7 @@ void render_screen(SDL_Renderer *renderer, SDL_Texture *screen, Console *con)
             GameObject *obj = &gameObjects[i];
             Position *pos = (Position *)game_object_get_component(obj, POSITION);
             Outfit *vis = (Outfit *)game_object_get_component(obj, OUTFIT);
-            console_putGlyphAt(con, vis->glyph, pos->x, pos->y, vis->fgColor, vis->bgColor);
+            console_put_glyph_at(con, vis->glyph, pos->x, pos->y, vis->fgColor, vis->bgColor);
         }
     }
 
@@ -68,11 +69,21 @@ int main(int argc, char *argv[])
     SDL_RenderSetLogicalSize(renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     Console *con = console_new(SCREEN_WIDTH, SCREEN_HEIGHT, NUM_COLS, NUM_ROWS);
-    console_setBitmapFont(con, TILESET, 0, FONT_SIZE, FONT_SIZE);
+    console_set_bitmap_font(con, TILESET, 0, FONT_SIZE, FONT_SIZE);
     SDL_Texture *screen = SCP(SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, SCREEN_WIDTH, SCREEN_HEIGHT));
 
     // Initialize world state
     world_init_state();
+    map_generate();
+
+    // Carve rooms
+    for (size_t row = 0; row < MAP_HEIGHT; ++row) {
+        for (size_t col = 0; col < MAP_WIDTH; ++col) {
+            if (mapCells[row][col]) {
+                map_add_wall(col, row);
+            }
+        }
+    }
 
     // Add entities to the game
     hero = game_object_new();
@@ -82,15 +93,6 @@ int main(int argc, char *argv[])
     game_object_add_component(hero, OUTFIT, &heroOutfit);
     Physical heroPhysical = { .id = hero->id, .blocksMovement = true, .blocksSight = true };
     game_object_add_component(hero, PHYSICAL, &heroPhysical);
-
-    wall = game_object_new();
-    Position wallPosition = { .id = wall->id, .x = rand() % NUM_COLS, .y = rand() % NUM_ROWS };
-    game_object_add_component(wall, POSITION, &wallPosition);
-    Outfit wallOutfit = { .id = wall->id, .glyph = '#', .fgColor = 0xff0000ff, .bgColor = 0xffffffff };
-    game_object_add_component(wall, OUTFIT, &wallOutfit);
-    Physical wallPhysical = { .id = wall->id, .blocksMovement = true, .blocksSight = true };
-    game_object_add_component(wall, PHYSICAL, &wallPhysical);
-
 
     // Game loop
     bool quit = false;

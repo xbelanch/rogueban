@@ -28,7 +28,7 @@ Console *console_new(uint32_t width,
     return console;
 }
 
-void console_setBitmapFont(Console *console,
+void console_set_bitmap_font(Console *console,
                            char *filename,
                            asciiChar firstCharinAtlas,
                            int charWidth, int charHeight)
@@ -99,7 +99,7 @@ void console_setBitmapFont(Console *console,
     console->font = font;
 }
 
-void console_fillColor(uint32_t *pixels, uint32_t pixelsPerRow, SDL_Rect dst, uint32_t color)
+void console_fill_color(uint32_t *pixels, uint32_t pixelsPerRow, SDL_Rect dst, uint32_t color)
 {
     uint32_t endX = dst.x + dst.w;
     uint32_t endY = dst.y + dst.h;
@@ -114,10 +114,10 @@ void console_fillColor(uint32_t *pixels, uint32_t pixelsPerRow, SDL_Rect dst, ui
 void console_clear(Console *console)
 {
     SDL_Rect src = { .x = 0, .y = 0, .w = console->width, .h = console->height };
-    console_fillColor(console->pixels, console->width, src, CHROMA_KEY);
+    console_fill_color(console->pixels, console->width, src, CHROMA_KEY);
 }
 
-void console_dumpTileset(Console *con)
+void console_dump_tileset(Console *con)
 {
     SDL_Rect src = { .x = 0, .y = 0, .w = con->font->atlasWidth, .h = con->font->atlasHeight };
     uint32_t endX = src.x + src.w;
@@ -131,7 +131,7 @@ void console_dumpTileset(Console *con)
 
 }
 
-void console_paintGlyph(uint32_t *srcPixel, uint32_t *dstPixel,
+static void console_paint_glyph(uint32_t *srcPixel, uint32_t *dstPixel,
                              SDL_Rect src, SDL_Rect dst,
                              size_t srcPixelPerRow, size_t dstPixelPerRow,
                         uint32_t fgColor, uint32_t bgColor, uint32_t chromaKey)
@@ -217,7 +217,7 @@ void console_paintGlyph(uint32_t *srcPixel, uint32_t *dstPixel,
     }
 }
 
-void console_putGlyphAt(Console *con,
+void console_put_glyph_at(Console *con,
                         asciiChar chr,
                         uint32_t cellX,
                         uint32_t cellY,
@@ -235,5 +235,5 @@ void console_putGlyphAt(Console *con,
     uint32_t yOffset = (idx / charsPerRow) * con->font->charHeight;
     SDL_Rect src = { .x = xOffset, .y = yOffset, .w = con->font->charWidth, .h = con->font->charHeight};
 
-    console_paintGlyph(con->font->atlas, con->pixels, src, dst, con->font->atlasWidth, con->width, fgColor, bgColor, con->font->chromaKey);
+    console_paint_glyph(con->font->atlas, con->pixels, src, dst, con->font->atlasWidth, con->width, fgColor, bgColor, con->font->chromaKey);
 }
