@@ -56,6 +56,40 @@ void render_screen(SDL_Renderer *renderer, SDL_Texture *screen, Console *con)
 
 int main(int argc, char *argv[])
 {
+    srand(time(NULL)); // randomize seed
+    (void) argc;
+    (void) argv[0];
+
+    Map *map = map_new(NUM_COLS, NUM_ROWS);
+    Rooms rooms = { 0 };
+    rooms.room = malloc(sizeof(Room) * MAX_ROOMS_SIZE);
+
+	map_reset(map);
+    for (size_t i = 0; i < MAX_ROOMS_SIZE; ++i) {
+        bool success = add_room(map, &rooms);
+    }
+
+    for (size_t i = 0; i < rooms.size; ++i) {
+        printf("Added room with id: %ld\n", rooms.room[i].id);
+    }
+
+    // assert(map != NULL);
+    // Display map
+    for (size_t i = 0; i < map->height; ++i) {
+        for (size_t j = 0; j < map->width; ++j)
+            if (map->cells[i * map->width + j] == BLOCK) {
+                putchar('#');
+            } else {
+                putchar('.');
+            }
+        putchar('\n');
+    }
+
+    return (0);
+}
+
+int main2(int argc, char *argv[])
+{
     (void) argc;
     (void) argv[0];
 
