@@ -72,11 +72,8 @@ extern bool mapCells[MAP_HEIGHT][MAP_WIDTH];
 Map *map_new(size_t cols, size_t rows);
 void map_reset(Map *map);
 void map_generate_rooms(Map *map, Room *rooms);
-Room *room_new(uint64_t id, Point start, Point end);
-Path *path_new(Point start, Point end, bool allowed);
-bool add_room(Map *map, Rooms *rooms);
-
-void map_generate();
-void map_add_wall(size_t x, size_t y);
+Room *map_room_new(uint64_t id, Point start, Point end);
+bool map_add_room(Map *map, Rooms *rooms);
+Path *map_path_new(Point start, Point end, bool allowed);
 
 #endif // MAP_H_

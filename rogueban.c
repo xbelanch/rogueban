@@ -14,7 +14,18 @@
 GameObject *hero;
 GameObject *wall;
 
-bool can_move(Position *new)
+static void map_add_wall(size_t x, size_t y)
+{
+    GameObject *wall = game_object_new();
+    Position wallPosition = { .id = wall->id, .x = x, .y = y };
+    game_object_add_component(wall, POSITION, &wallPosition);
+    Outfit wallOutfit = { .id = wall->id, .glyph = '#', .fgColor = 0x675644ff, .bgColor = 0xff };
+    game_object_add_component(wall, OUTFIT, &wallOutfit);
+    Physical wallPhysical = { .id = wall->id, .blocksMovement = true, .blocksSight = true };
+    game_object_add_component(wall, PHYSICAL, &wallPhysical);
+}
+
+static bool can_move(Position *new)
 {
     // Check first screen boundaries
     if ((new->y >= 0 && new->y < MAP_HEIGHT) && (new->x >= 0 && new->x < MAP_WIDTH)) {
@@ -35,7 +46,7 @@ bool can_move(Position *new)
 
 }
 
-void render_screen(SDL_Renderer *renderer, SDL_Texture *screen, Console *con)
+static void render_screen(SDL_Renderer *renderer, SDL_Texture *screen, Console *con)
 {
     console_clear(con);
 
@@ -66,7 +77,7 @@ int main(int argc, char *argv[])
 
 	map_reset(map);
     for (size_t i = 0; i < MAX_ROOMS_SIZE; ++i) {
-        bool success = add_room(map, &rooms);
+        map_add_room(map, &rooms);
     }
 
     for (size_t i = 0; i < rooms.size; ++i) {
@@ -108,7 +119,8 @@ int main2(int argc, char *argv[])
 
     // Initialize world state
     world_init_state();
-    map_generate();
+    // @TODO: drop function. Need to be removed (08-08-2022)
+    // map_generate();
 
     // Carve rooms
     for (size_t row = 0; row < MAP_HEIGHT; ++row) {
