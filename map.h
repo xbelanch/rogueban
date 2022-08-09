@@ -15,15 +15,7 @@
 
 typedef enum {
     BLOCK = 0,
-    CARVED,
     FLOOR,
-    GRASS,
-    SAND,
-    SNOW,
-    TREE,
-    ROCK,
-    HOLE,
-    DOOR,
     MAX_SIZE_KIND_CELLS
 } CellsType;
 
@@ -33,11 +25,11 @@ typedef enum {
 } RoomType;
 
 typedef struct {
-    uint8_t x, y;
+    int x, y;
 } Point;
 
 typedef struct {
-    uint8_t width, height;
+    int width, height;
 } Dim;
 
 typedef struct {
@@ -53,15 +45,16 @@ typedef struct room {
     Dim dim;
     Point center;
     struct room* neighbors;
+    size_t neighbors_size;
 } Room;
 
 typedef struct {
-    Point start;
-    Point end;
+    Point from;
+    Point to;
     bool allowed;
 } Path;
 
-// @TODO: need a better name (07-08-2022)
+// @TODO: Perhaps that'd make sense if belongs to Map struct (07-08-2022)
 typedef struct {
     Room *room;
     size_t size;
@@ -74,6 +67,8 @@ void map_reset(Map *map);
 void map_generate_rooms(Map *map, Room *rooms);
 Room *map_room_new(uint64_t id, Point start, Point end);
 bool map_add_room(Map *map, Rooms *rooms);
-Path *map_path_new(Point start, Point end, bool allowed);
+Path *map_path_new(Point from, Point to, bool allowed);
+void map_add_path(Map *map, Path* path);
 
+void map_test_funcs(Map *map, Rooms *rooms);
 #endif // MAP_H_

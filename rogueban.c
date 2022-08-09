@@ -72,27 +72,43 @@ int main(int argc, char *argv[])
     (void) argv[0];
 
     Map *map = map_new(NUM_COLS, NUM_ROWS);
-    Rooms rooms = { 0 };
-    rooms.room = malloc(sizeof(Room) * MAX_ROOMS_SIZE);
-
 	map_reset(map);
+
+    Rooms rooms = {
+        .room = malloc(sizeof(Room) * MAX_ROOMS_SIZE),
+        .size = 0
+    };
+
     for (size_t i = 0; i < MAX_ROOMS_SIZE; ++i) {
         map_add_room(map, &rooms);
     }
 
-    for (size_t i = 0; i < rooms.size; ++i) {
-        printf("Added room with id: %ld\n", rooms.room[i].id);
-    }
+    Path *path = map_path_new((Point){1, 1}, (Point) {5, 1}, true);
 
-    // assert(map != NULL);
+    // Testing zone
+    // map_add_path(map, path);
+    // map_test_funcs(map, &rooms);
+    // End testing zone
+
     // Display map
     for (size_t i = 0; i < map->height; ++i) {
-        for (size_t j = 0; j < map->width; ++j)
+        for (size_t j = 0; j < map->width; ++j) {
             if (map->cells[i * map->width + j] == BLOCK) {
                 putchar('#');
             } else {
-                putchar('.');
+                // print room ids
+                bool found = false;
+                int id;
+                for (size_t k = 0; k < rooms.size; ++k) {
+                    if ((rooms.room[k].center.x == (int)j) && (rooms.room[k].center.y == (int)i)) {
+                        found = true;
+                        id = rooms.room[k].id;
+                        break;
+                    }
+                }
+                found == true ? printf("%d", id) : putchar('.');
             }
+        }
         putchar('\n');
     }
 
